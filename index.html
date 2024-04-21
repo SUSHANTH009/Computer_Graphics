@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computer Graphics Project</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<style>
+        html, body {
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			right: 0px;
+			bottom: 0px;
+			padding: 0px;
+			margin: 0px;
+			overflow: hidden;
+			display: flex;
+			height: 100%;
+			width: 100%;
+			background-color: #000;
+			cursor:none;
+        }
+
+		canvas 
+		{
+			margin: auto auto;
+		}
+
+		#downloadBtn {
+			position: fixed;
+    		top: 40px;
+    		right: 10px;
+    		z-index: 1001;   
+        }
+
+        #projectInfo {
+            position: fixed;   
+            top: 10px;         
+            left: 10px;        
+            color: white;      
+            z-index: 1000;     
+			font-size: 20px;
+        }
+
+		#creatorInfo {
+			position: fixed;
+    		top: 10px;
+    		right: 10px; 
+    		color: white;
+			z-index: 1000;
+			font-size: 20px;
+			white-space: nowrap;
+        }
+
+    </style>
+</head>
+<body>
+	<div id="projectInfo">0x08 : 2D Animations (Project: BlackHole Project)</div>
+	<div id="creatorInfo">Created by Tutors 102117149: Garv Bundel | 102117162: K Sushanth Raj Singh</div>
+
+    <canvas id="glscreen"></canvas>
+    <button id="downloadBtn">Download</button>
+    <script id="2d-fragment-shader" type="x-shader/x-fragment">
+        #ifdef GL_ES
+        precision mediump float;
+        #endif
+
+        #define PI 3.14159265359
+
+        uniform sampler2D u_image;
+        varying vec2 v_texCoord;
+
+        uniform vec2 u_resolution;
+        uniform vec2 u_mouse;
+        uniform float u_mass;
+        uniform float u_time;
+        uniform float u_clickedTime;
+
+        vec2 rotate(vec2 mt, vec2 st, float angle){
+            float cos = cos((angle + u_clickedTime) * PI);
+            float sin = sin(angle * 0.0);
+
+            float nx = (cos * (st.x - mt.x)) + (sin * (st.y - mt.y)) + mt.x;
+            float ny = (cos * (st.y - mt.y)) - (sin * (st.x - mt.x)) + mt.y;
+            return vec2(nx, ny);
+        }
+
+        void main() {
+            vec2 st = vec2(gl_FragCoord.x, u_resolution.y - gl_FragCoord.y)/u_resolution;
+            vec2 mt = vec2(u_mouse.x, u_resolution.y - u_mouse.y)/u_resolution;
+
+            float dx = st.x - mt.x;
+            float dy = st.y - mt.y;
+
+            float dist = sqrt(dx * dx + dy * dy);
+            float pull = u_mass / (dist * dist);
+
+            vec3 color = vec3(0.0);
+
+            vec2 r = rotate(mt, st, pull);
+            vec4 imgcolor = texture2D(u_image, r);
+            color = vec3(
+                (imgcolor.x - (pull * 0.25)),
+                (imgcolor.y - (pull * 0.25)), 
+                (imgcolor.z - (pull * 0.25))
+            );
+
+            gl_FragColor = vec4(color,1.);
+        }
+    </script>
+    <script id="2d-vertex-shader" type="x-shader/x-vertex">
+        attribute vec2 a_position;
+        attribute vec2 a_texCoord;
+
+        varying vec2 v_texCoord;
+        void main() {
+            gl_Position = vec4(a_position, 0, 1);
+            v_texCoord = a_texCoord;
+        }
+    </script>
+    <script src="index.js"></script>
+</body>
+</html>
